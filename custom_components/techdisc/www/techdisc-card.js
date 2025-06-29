@@ -42,10 +42,30 @@ class TechDiscCard extends HTMLElement {
           font-size: 1.2em;
           font-weight: 500;
         }
-        .metrics-grid {
+        .content-wrapper {
+          display: flex;
+          gap: 16px;
+        }
+        .left-column {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          min-width: 180px; /* Adjusted min-width */
+        }
+        .left-column p { /* Style for "Latest Throw" */
+          margin: 0;
+          font-weight: 500; /* Similar to header h2 */
+          color: var(--primary-text-color);
+        }
+        .left-column span { /* Style for throw type, bearing, time */
+          font-size: 0.9em;
+          color: var(--secondary-text-color);
+        }
+        .right-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+          grid-template-columns: repeat(3, 1fr);
           gap: 12px;
+          flex-grow: 1;
         }
         .metric {
           background: var(--secondary-background-color);
@@ -112,44 +132,27 @@ class TechDiscCard extends HTMLElement {
     
     // Get all TechDisc sensors
     const speedEntity = this._hass.states['sensor.techdisc_speed'];
-    const distanceEntity = this._hass.states['sensor.techdisc_distance'];
+    // const distanceEntity = this._hass.states['sensor.techdisc_distance']; // Not used in the new layout
     const hyzerEntity = this._hass.states['sensor.techdisc_hyzer_angle'];
     const noseEntity = this._hass.states['sensor.techdisc_nose_angle'];
     const rotationEntity = this._hass.states['sensor.techdisc_spin'];
     const launchAngleEntity = this._hass.states['sensor.techdisc_launch_angle'];
     const wobbleEntity = this._hass.states['sensor.techdisc_wobble'];
     const throwTypeEntity = this._hass.states['sensor.techdisc_throw_type'];
+    const lastThrowTimeEntity = this._hass.states['sensor.techdisc_last_throw_time']; // Assuming this entity exists
+    const bearingEntity = this._hass.states['sensor.techdisc_bearing']; // Assuming this entity exists
+
 
     if (!speedEntity || speedEntity.state === 'unavailable') {
       content.innerHTML = '<div class="unavailable">No throw data available</div>';
       return;
     }
 
-    const metrics = [
+    const metricsTopRow = [
       {
         value: speedEntity.state,
         unit: 'mph',
         label: 'Speed'
-      },
-      {
-        value: distanceEntity?.state || 'N/A',
-        unit: 'ft',
-        label: 'Distance'
-      },
-      {
-        value: hyzerEntity?.state || 'N/A',
-        unit: '°',
-        label: 'Hyzer Angle'
-      },
-      {
-        value: noseEntity?.state || 'N/A',
-        unit: '°',
-        label: 'Nose Angle'
-      },
-      {
-        value: launchAngleEntity?.state || 'N/A',
-        unit: '°',
-        label: 'Launch Angle'
       },
       {
         value: rotationEntity?.state || 'N/A',
@@ -163,7 +166,25 @@ class TechDiscCard extends HTMLElement {
       }
     ];
 
-    const metricsHtml = metrics.map(metric => `
+    const metricsBottomRow = [
+      {
+        value: hyzerEntity?.state || 'N/A',
+        unit: '°',
+        label: 'Hyzer'
+      },
+      {
+        value: noseEntity?.state || 'N/A',
+        unit: '°',
+        label: 'Nose'
+      },
+      {
+        value: launchAngleEntity?.state || 'N/A',
+        unit: '°',
+        label: 'Launch'
+      }
+    ];
+
+    const metricsTopRowHtml = metricsTopRow.map(metric => `
       <div class="metric">
         <div class="metric-value">
           ${metric.value}
@@ -173,23 +194,44 @@ class TechDiscCard extends HTMLElement {
       </div>
     `).join('');
 
-    const throwInfo = throwTypeEntity ? `
-      <div class="throw-info">
-        <div class="throw-type">${throwTypeEntity.state}</div>
-        <div class="throw-details">
-          ${throwTypeEntity.attributes.handedness ? `<div>Hand: ${throwTypeEntity.attributes.handedness}</div>` : ''}
-          ${throwTypeEntity.attributes.temperature ? `<div>Temp: ${Math.round(throwTypeEntity.attributes.temperature)}°C</div>` : ''}
-          ${throwTypeEntity.attributes.bearing ? `<div>Bearing: ${Math.round(throwTypeEntity.attributes.bearing)}°</div>` : ''}
-          ${throwTypeEntity.attributes.uphill_angle ? `<div>Uphill: ${Math.round(throwTypeEntity.attributes.uphill_angle)}°</div>` : ''}
+    const metricsBottomRowHtml = metricsBottomRow.map(metric => `
+      <div class="metric">
+        <div class="metric-value">
+          ${metric.value}
+          <span class="metric-unit">${metric.unit}</span>
         </div>
+        <div class="metric-label">${metric.label}</div>
       </div>
-    ` : '';
+    `).join('');
+
+    // Attempt to format the date/time nicely
+    let formattedThrowTime = 'N/A';
+    if (lastThrowTimeEntity && lastThrowTimeEntity.state !== 'unavailable') {
+        try {
+            const date = new Date(lastThrowTimeEntity.state);
+            formattedThrowTime = date.toLocaleString(undefined, {
+                weekday: 'long', hour: 'numeric', minute: 'numeric'
+            });
+        } catch (e) {
+            formattedThrowTime = lastThrowTimeEntity.state; // fallback to raw state
+        }
+    }
+
+    const bearingValue = bearingEntity && bearingEntity.state !== 'unavailable' ? `${Math.round(bearingEntity.state)}°` : 'N/A';
 
     content.innerHTML = `
-      <div class="metrics-grid">
-        ${metricsHtml}
+      <div class="content-wrapper">
+        <div class="left-column">
+          <p class="MuiTypography-root MuiTypography-body1 MuiTypography-gutterBottom css-ftrrzr">Latest Throw</p>
+          <span class="MuiStack-root css-1ptfqyl">${throwTypeEntity?.state || 'N/A'}</span>
+          <span class="MuiStack-root css-14qay1w">Bearing: ${bearingValue}</span>
+          <span class="MuiStack-root css-14qay1w">Time: ${formattedThrowTime}</span>
+        </div>
+        <div class="right-grid">
+          ${metricsTopRowHtml}
+          ${metricsBottomRowHtml}
+        </div>
       </div>
-      ${throwInfo}
     `;
   }
 
