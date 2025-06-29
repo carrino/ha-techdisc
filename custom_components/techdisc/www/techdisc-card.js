@@ -115,7 +115,7 @@ class TechDiscCard extends HTMLElement {
     const distanceEntity = this._hass.states['sensor.techdisc_distance'];
     const hyzerEntity = this._hass.states['sensor.techdisc_hyzer_angle'];
     const noseEntity = this._hass.states['sensor.techdisc_nose_angle'];
-    const rotationEntity = this._hass.states['sensor.techdisc_rotation'];
+    const rotationEntity = this._hass.states['sensor.techdisc_spin'];
     const launchAngleEntity = this._hass.states['sensor.techdisc_launch_angle'];
     const wobbleEntity = this._hass.states['sensor.techdisc_wobble'];
     const throwTypeEntity = this._hass.states['sensor.techdisc_throw_type'];
@@ -154,7 +154,7 @@ class TechDiscCard extends HTMLElement {
       {
         value: rotationEntity?.state || 'N/A',
         unit: 'rpm',
-        label: 'Rotation'
+        label: 'Spin'
       },
       {
         value: wobbleEntity?.state || 'N/A',
