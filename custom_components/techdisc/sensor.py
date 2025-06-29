@@ -23,7 +23,7 @@ DOMAIN = "techdisc"
 
 _LOGGER = logging.getLogger(__name__)
 
-SCAN_INTERVAL = timedelta(seconds=30)
+SCAN_INTERVAL = timedelta(seconds=1)
 
 
 async def async_setup_entry(
@@ -64,7 +64,7 @@ class TechDiscDataUpdateCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self):
         """Update data via library."""
         try:
-            async with async_timeout.timeout(10):
+            async with async_timeout.timeout(60):
                 async with aiohttp.ClientSession() as session:
                     headers = {
                         "content-type": "application/json",
@@ -85,26 +85,35 @@ class TechDiscDataUpdateCoordinator(DataUpdateCoordinator):
                             raise UpdateFailed(f"Error communicating with API: {response.status}")
                         
                         new_data = await response.json()
-                        
-                        # If we get data back, update our timestamp for next request
-                        if new_data and "throwTime" in new_data:
+
+                        # Check if it's a meaningful new throw with valid time
+                        if new_data and "throwTime" in new_data and \
+                           isinstance(new_data.get("throwTime"), dict) and \
+                           "_seconds" in new_data["throwTime"] and \
+                           "_nanoseconds" in new_data["throwTime"]:
+
                             throw_time = new_data["throwTime"]
-                            if "_seconds" in throw_time and "_nanoseconds" in throw_time:
-                                # Convert to milliseconds
-                                self.last_throw_time_millis = (
-                                    throw_time["_seconds"] * 1000 + 
-                                    throw_time["_nanoseconds"] // 1000000
-                                )
-                                _LOGGER.debug(f"Updated last throw time to: {self.last_throw_time_millis}")
-                                return new_data
-                        
-                        # If no new data, return the existing data to avoid clearing sensors
-                        if hasattr(self, 'data') and self.data:
-                            _LOGGER.debug("No new throw data, keeping existing data")
-                            return self.data
-                        
-                        # First time or no existing data
-                        return new_data
+                            # Convert to milliseconds
+                            self.last_throw_time_millis = (
+                                throw_time["_seconds"] * 1000 +
+                                throw_time["_nanoseconds"] // 1000000
+                            )
+                            _LOGGER.debug(f"New throw received. Updated last throw time to: {self.last_throw_time_millis}")
+                            return new_data
+                        else:
+                            # This means it's an empty response, the minimal timeout payload from server,
+                            # or data not conforming to a valid throw. Treat as no new data.
+                            _LOGGER.debug("No new valid throw data received, or received minimal/timeout payload from server.")
+                            if hasattr(self, 'data') and self.data:
+                                # Return existing data, sensors won't change, coordinator won't push update
+                                _LOGGER.debug("Returning existing data.")
+                                return self.data
+                            else:
+                                # No existing data and no new valid throw.
+                                # Raise UpdateFailed to prevent processing of minimal payload
+                                # and to ensure coordinator handles it as a failed attempt to get *new* data.
+                                _LOGGER.debug("No existing data and no new valid throw. Raising UpdateFailed.")
+                                raise UpdateFailed("No new valid throw data received after API call.")
                         
         except asyncio.TimeoutError as exception:
             raise UpdateFailed(f"Timeout communicating with API") from exception
