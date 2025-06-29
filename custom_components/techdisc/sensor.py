@@ -112,13 +112,29 @@ class TechDiscDataUpdateCoordinator(DataUpdateCoordinator):
                                 # No existing data and no new valid throw.
                                 # Raise UpdateFailed to prevent processing of minimal payload
                                 # and to ensure coordinator handles it as a failed attempt to get *new* data.
-                                _LOGGER.debug("No existing data and no new valid throw. Raising UpdateFailed.")
-                                raise UpdateFailed("No new valid throw data received after API call.")
+                            _LOGGER.debug("No existing data and no new valid throw. Returning None.")
+                            return None  # No new data, and no old data to fallback to.
                         
         except asyncio.TimeoutError as exception:
-            raise UpdateFailed(f"Timeout communicating with API") from exception
+            # Log the error but return existing data if available, or None if not.
+            # This prevents sensors from becoming unavailable during transient network issues
+            # if there's still valid old data.
+            _LOGGER.warning(f"Timeout communicating with API: {exception}")
+            if hasattr(self, 'data') and self.data:
+                _LOGGER.debug("Timeout, but returning existing data.")
+                return self.data
+            else:
+                _LOGGER.debug("Timeout and no existing data. Returning None.")
+                return None
         except aiohttp.ClientError as exception:
-            raise UpdateFailed(f"Error communicating with API") from exception
+            # Similar to TimeoutError, attempt to return existing data if a client error occurs.
+            _LOGGER.warning(f"ClientError communicating with API: {exception}")
+            if hasattr(self, 'data') and self.data:
+                _LOGGER.debug("ClientError, but returning existing data.")
+                return self.data
+            else:
+                _LOGGER.debug("ClientError and no existing data. Returning None.")
+                return None
 
 
 class TechDiscSensorBase(CoordinatorEntity, SensorEntity):
