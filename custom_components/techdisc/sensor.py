@@ -181,7 +181,7 @@ class TechDiscNoseAngleSensor(TechDiscSensorBase):
         """Initialize the sensor."""
         super().__init__(coordinator, "nose_angle")
         self._attr_unit_of_measurement = "°"
-        self._attr_icon = "mdi:angle-right"
+        self._attr_icon = "mdi:angle-acute"
 
     @property
     def state(self) -> float | None:
@@ -192,11 +192,11 @@ class TechDiscNoseAngleSensor(TechDiscSensorBase):
 
 
 class TechDiscRotationSensor(TechDiscSensorBase):
-    """Rotation sensor for TechDisc."""
+    """Spin sensor for TechDisc."""
 
     def __init__(self, coordinator: TechDiscDataUpdateCoordinator) -> None:
         """Initialize the sensor."""
-        super().__init__(coordinator, "rotation")
+        super().__init__(coordinator, "spin")
         self._attr_unit_of_measurement = "rpm"
         self._attr_icon = "mdi:rotate-360"
 
@@ -217,7 +217,7 @@ class TechDiscLaunchAngleSensor(TechDiscSensorBase):
         """Initialize the sensor."""
         super().__init__(coordinator, "launch_angle")
         self._attr_unit_of_measurement = "°"
-        self._attr_icon = "mdi:angle-obtuse"
+        self._attr_icon = "mdi:slope-uphill"
 
     @property
     def state(self) -> float | None:
@@ -234,7 +234,7 @@ class TechDiscWobbleSensor(TechDiscSensorBase):
         """Initialize the sensor."""
         super().__init__(coordinator, "wobble")
         self._attr_unit_of_measurement = "°"
-        self._attr_icon = "mdi:sine-wave"
+        self._attr_icon = "mdi:rotate-3d-variant"
 
     @property
     def state(self) -> float | None:
