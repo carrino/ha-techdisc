@@ -20,6 +20,13 @@ class TechDiscCard extends HTMLElement {
   render() {
     this.shadowRoot.innerHTML = `
       <style>
+        /* Add styles for the logo */
+        .header img.logo {
+          height: 24px; /* Adjust size as needed */
+          width: auto;
+          margin-right: 8px;
+          vertical-align: middle; /* Align with title text */
+        }
         .card {
           background: var(--ha-card-background, var(--card-background-color, white));
           border-radius: var(--ha-card-border-radius, 12px);
@@ -117,6 +124,7 @@ class TechDiscCard extends HTMLElement {
       </style>
       <div class="card">
         <div class="header">
+           <img src="../logo.png" class="logo" alt="TechDisc Logo">
           <ha-icon icon="mdi:disc"></ha-icon>
           <h2>${this.config.title || 'TechDisc Metrics'}</h2>
         </div>
