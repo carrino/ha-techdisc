@@ -112,8 +112,8 @@ class TechDiscDataUpdateCoordinator(DataUpdateCoordinator):
                                 # No existing data and no new valid throw.
                                 # Raise UpdateFailed to prevent processing of minimal payload
                                 # and to ensure coordinator handles it as a failed attempt to get *new* data.
-                            _LOGGER.debug("No existing data and no new valid throw. Returning None.")
-                            return None  # No new data, and no old data to fallback to.
+                                _LOGGER.debug("No existing data and no new valid throw. Returning None.")
+                                return None  # No new data, and no old data to fallback to.
                         
         except asyncio.TimeoutError as exception:
             # Log the error but return existing data if available, or None if not.
