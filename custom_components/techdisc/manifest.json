@@ -1,6 +1,6 @@
 {
   "domain": "techdisc",
-  "name": "TechDisc Card",
+  "name": "TechDisc",
   "codeowners": ["@carrino"],
   "config_flow": true,
   "dependencies": [],
