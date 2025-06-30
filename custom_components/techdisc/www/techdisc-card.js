@@ -149,11 +149,14 @@ class TechDiscCard extends HTMLElement {
     const launchAngleEntity = this._hass.states['sensor.techdisc_launch_angle'];
     const wobbleEntity = this._hass.states['sensor.techdisc_wobble'];
     const throwTypeEntity = this._hass.states['sensor.techdisc_throw_type'];
+    const distanceEntity = this._hass.states['sensor.techdisc_distance']; // Added back for left column
     // const lastThrowTimeEntity = this._hass.states['sensor.techdisc_last_throw_time']; // No longer needed
     // const bearingEntity = this._hass.states['sensor.techdisc_bearing']; // No longer needed
 
 
-    if (!speedEntity || speedEntity.state === 'unavailable' || !throwTypeEntity || throwTypeEntity.state === 'unavailable') {
+    if (!speedEntity || speedEntity.state === 'unavailable' ||
+        !throwTypeEntity || throwTypeEntity.state === 'unavailable' ||
+        !distanceEntity || distanceEntity.state === 'unavailable') {
       content.innerHTML = '<div class="unavailable">No throw data available</div>';
       return;
     }
@@ -239,6 +242,10 @@ class TechDiscCard extends HTMLElement {
       bearingHtml = `<span class="MuiStack-root css-14qay1w">Bearing: ${bearingValue}</span>`;
     }
 
+    const distanceValue = distanceEntity && distanceEntity.state !== 'unavailable' && distanceEntity.state !== 'unknown'
+      ? `${Math.round(parseFloat(distanceEntity.state))} ft`
+      : 'N/A';
+
     content.innerHTML = `
       <div class="content-wrapper">
         <div class="left-column">
@@ -246,6 +253,7 @@ class TechDiscCard extends HTMLElement {
           <span class="MuiStack-root css-1ptfqyl">${throwTypeEntity.state || 'N/A'}</span>
           ${bearingHtml}
           <span class="MuiStack-root css-14qay1w">Time: ${formattedThrowTime}</span>
+          <span class="MuiStack-root css-14qay1w">Distance: ${distanceValue}</span>
         </div>
         <div class="right-grid">
           ${metricsTopRowHtml}
