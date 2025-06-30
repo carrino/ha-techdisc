@@ -249,7 +249,8 @@ class TechDiscCard extends HTMLElement {
                 weekday: 'long', hour: 'numeric', minute: 'numeric'
             });
         } catch (e) {
-            _LOGGER.error("Error formatting throw time:", e);
+            // _LOGGER.error("Error formatting throw time:", e); // _LOGGER is not defined here
+            console.error("Error formatting throw time:", e);
             formattedThrowTime = 'Error'; // Or some other indicator
         }
     }
@@ -259,7 +260,7 @@ class TechDiscCard extends HTMLElement {
 
     let bearingHtml = '';
     if (bearingValue) {
-      bearingHtml = `<span class="throw-detail-item">Bearing: ${bearingValue}</span>`; // Changed class
+      bearingHtml = `<span class="throw-detail-item">Bearing: ${bearingValue}</span>`;
     }
 
     const distanceValue = distanceEntity && distanceEntity.state !== 'unavailable' && distanceEntity.state !== 'unknown'
