@@ -20,6 +20,10 @@ class TechDiscCard extends HTMLElement {
   render() {
     this.shadowRoot.innerHTML = `
       <style>
+        /* Global box-sizing */
+        *, *::before, *::after {
+          box-sizing: border-box;
+        }
         .card {
           background: var(--ha-card-background, var(--card-background-color, white));
           border-radius: var(--ha-card-border-radius, 12px);
@@ -45,18 +49,20 @@ class TechDiscCard extends HTMLElement {
         .content-wrapper {
           display: flex;
           gap: 16px;
+          /* align-items: flex-start; */ /* Optional: if columns have different natural heights */
         }
-        .left-column-paper { /* New wrapper for paper styling */
+        .left-column-paper {
           background: var(--ha-card-background, var(--card-background-color, white));
           border-radius: var(--ha-card-border-radius, 12px);
           box-shadow: var(--ha-card-box-shadow, var(--shadow-elevation-2dp_-_box-shadow));
           padding: 16px;
           display: flex;
           flex-direction: column;
-          gap: 8px; /* Gap between title and details group */
-          min-width: 180px; /* Or adjust as needed, could be flex-basis */
+          gap: 8px;
+          flex-basis: 200px; /* Give left column a basis, adjust as needed */
+          flex-shrink: 0; /* Prevent shrinking */
         }
-        .left-column-paper p.latest-throw-title { /* Style for "Latest Throw" */
+        .left-column-paper p.latest-throw-title {
           margin: 0 0 8px 0;
           font-weight: 500;
           color: var(--primary-text-color);
@@ -66,28 +72,28 @@ class TechDiscCard extends HTMLElement {
           flex-direction: column;
           gap: 4px; /* Small gap between detail lines */
         }
-        /* Styles for spans within throw-details-group, mimicking Mui classes */
-        .throw-details-group .css-1ptfqyl { /* For throw type */
-          font-weight: 500; /* Example, adjust as needed */
+        /* Simplified styles for throw details */
+        .throw-details-group .throw-detail-type {
+          font-weight: 500;
           color: var(--primary-text-color);
+          font-size: 1em; /* Ensure consistent base size */
         }
-        .throw-details-group .css-14qay1w { /* For other details like time, bearing, distance */
+        .throw-details-group .throw-detail-item {
           font-size: 0.9em;
           color: var(--secondary-text-color);
         }
         .right-grid {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(3, minmax(0, 1fr)); /* Ensures columns can shrink if needed */
           gap: 12px;
-          flex-grow: 1;
+          flex-grow: 1; /* Allow right grid to take remaining space */
         }
         .metric {
-          /* background: var(--secondary-background-color); */ /* Removed */
-          border-radius: var(--ha-card-border-radius, 12px); /* Use HA card radius */
-          padding: 12px;
+          border-radius: var(--ha-card-border-radius, 12px);
+          padding: 10px; /* Slightly reduced padding */
           text-align: center;
-          background: var(--ha-card-background, var(--card-background-color, white)); /* Use HA card background */
-          box-shadow: var(--ha-card-box-shadow, var(--shadow-elevation-2dp_-_box-shadow)); /* Use HA card shadow */
+          background: var(--ha-card-background, var(--card-background-color, white));
+          box-shadow: var(--ha-card-box-shadow, var(--shadow-elevation-2dp_-_box-shadow));
         }
         .metric-label { /* This is the title like "Speed" */
           font-size: 1em; /* Adjusted - similar to MuiTypography-body1 */
@@ -253,7 +259,7 @@ class TechDiscCard extends HTMLElement {
 
     let bearingHtml = '';
     if (bearingValue) {
-      bearingHtml = `<span class="MuiStack-root css-14qay1w">Bearing: ${bearingValue}</span>`;
+      bearingHtml = `<span class="throw-detail-item">Bearing: ${bearingValue}</span>`; // Changed class
     }
 
     const distanceValue = distanceEntity && distanceEntity.state !== 'unavailable' && distanceEntity.state !== 'unknown'
@@ -265,10 +271,10 @@ class TechDiscCard extends HTMLElement {
         <div class="left-column-paper">
           <p class="latest-throw-title MuiTypography-root MuiTypography-body1 MuiTypography-gutterBottom css-ftrrzr">Latest Throw</p>
           <div class="throw-details-group">
-            <span class="MuiStack-root css-1ptfqyl">${throwTypeEntity.state || 'N/A'}</span>
-            ${bearingHtml} {/* This already generates a span with the correct classes if bearingValue exists */}
-            <span class="MuiStack-root css-14qay1w">Time: ${formattedThrowTime}</span>
-            <span class="MuiStack-root css-14qay1w">Distance: ${distanceValue}</span>
+            <span class="throw-detail-type">${throwTypeEntity.state || 'N/A'}</span> {/* Changed class */}
+            ${bearingHtml} {/* Already changed to throw-detail-item */}
+            <span class="throw-detail-item">Time: ${formattedThrowTime}</span> {/* Changed class */}
+            <span class="throw-detail-item">Distance: ${distanceValue}</span> {/* Changed class */}
           </div>
         </div>
         <div class="right-grid">
