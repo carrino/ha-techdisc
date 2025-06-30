@@ -271,10 +271,10 @@ class TechDiscCard extends HTMLElement {
         <div class="left-column-paper">
           <p class="latest-throw-title MuiTypography-root MuiTypography-body1 MuiTypography-gutterBottom css-ftrrzr">Latest Throw</p>
           <div class="throw-details-group">
-            <span class="throw-detail-type">${throwTypeEntity.state || 'N/A'}</span> {/* Changed class */}
-            ${bearingHtml} {/* Already changed to throw-detail-item */}
-            <span class="throw-detail-item">Time: ${formattedThrowTime}</span> {/* Changed class */}
-            <span class="throw-detail-item">Distance: ${distanceValue}</span> {/* Changed class */}
+            <span class="throw-detail-type">${throwTypeEntity.state || 'N/A'}</span>
+            ${bearingHtml}
+            <span class="throw-detail-item">Time: ${formattedThrowTime}</span>
+            <span class="throw-detail-item">Distance: ${distanceValue}</span>
           </div>
         </div>
         <div class="right-grid">
