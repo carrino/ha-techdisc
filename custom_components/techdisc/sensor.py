@@ -119,7 +119,7 @@ class TechDiscDataUpdateCoordinator(DataUpdateCoordinator):
             # Log the error but return existing data if available, or None if not.
             # This prevents sensors from becoming unavailable during transient network issues
             # if there's still valid old data.
-            _LOGGER.warning(f"Timeout communicating with API: {exception}")
+            _LOGGER.debug(f"Timeout communicating with API: {exception}") # Changed from warning to debug
             if hasattr(self, 'data') and self.data:
                 _LOGGER.debug("Timeout, but returning existing data.")
                 return self.data
