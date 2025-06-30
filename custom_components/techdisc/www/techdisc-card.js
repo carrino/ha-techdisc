@@ -5,9 +5,9 @@ class TechDiscCard extends HTMLElement {
   }
 
   setConfig(config) {
-    if (!config.entity) {
-      throw new Error('You need to define an entity');
-    }
+    // if (!config.entity) { // Removed this check
+    //   throw new Error('You need to define an entity');
+    // }
     this.config = config;
     this.render();
   }
@@ -20,6 +20,10 @@ class TechDiscCard extends HTMLElement {
   render() {
     this.shadowRoot.innerHTML = `
       <style>
+        /* Global box-sizing */
+        *, *::before, *::after {
+          box-sizing: border-box;
+        }
         .card {
           background: var(--ha-card-background, var(--card-background-color, white));
           border-radius: var(--ha-card-border-radius, 12px);
@@ -42,34 +46,80 @@ class TechDiscCard extends HTMLElement {
           font-size: 1.2em;
           font-weight: 500;
         }
-        .metrics-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-          gap: 12px;
+        .content-wrapper {
+          display: flex;
+          gap: 16px;
+          /* align-items: flex-start; */ /* Optional: if columns have different natural heights */
         }
-        .metric {
-          background: var(--secondary-background-color);
-          border-radius: 8px;
-          padding: 12px;
-          text-align: center;
+        .left-column-paper {
+          background: var(--ha-card-background, var(--card-background-color, white));
+          border-radius: var(--ha-card-border-radius, 12px);
+          box-shadow: var(--ha-card-box-shadow, var(--shadow-elevation-2dp_-_box-shadow));
+          padding: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          flex-basis: 170px; /* Reduced from 200px */
+          flex-shrink: 0; /* Prevent shrinking */
         }
-        .metric-value {
-          font-size: 1.4em;
-          font-weight: bold;
-          color: var(--primary-color);
-          margin-bottom: 4px;
+        .left-column-paper p.latest-throw-title {
+          margin: 0 0 8px 0;
+          font-weight: 500;
+          color: var(--primary-text-color);
         }
-        .metric-label {
+        .throw-details-group { /* New group for throw details */
+          display: flex;
+          flex-direction: column;
+          gap: 4px; /* Small gap between detail lines */
+        }
+        /* Simplified styles for throw details */
+        .throw-details-group .throw-detail-type {
+          font-weight: 500;
+          color: var(--primary-text-color);
+          font-size: 1em; /* Ensure consistent base size */
+        }
+        .throw-details-group .throw-detail-item {
           font-size: 0.9em;
           color: var(--secondary-text-color);
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
+        }
+        .right-grid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr)); /* Ensures columns can shrink if needed */
+          gap: 12px;
+          flex-grow: 1; /* Allow right grid to take remaining space */
+        }
+        .metric {
+          border-radius: var(--ha-card-border-radius, 12px);
+          padding: 10px; /* Slightly reduced padding */
+          text-align: center;
+          background: var(--ha-card-background, var(--card-background-color, white));
+          box-shadow: var(--ha-card-box-shadow, var(--shadow-elevation-2dp_-_box-shadow));
+        }
+        .metric-label { /* This is the title like "Speed" */
+          font-size: 1em; /* Adjusted - similar to MuiTypography-body1 */
+          font-weight: 500; /* Adjusted */
+          color: var(--primary-text-color); /* Adjusted */
+          margin-bottom: 8px; /* Adjusted - similar to MuiTypography-gutterBottom */
+          text-transform: none; /* Removed uppercase */
+          letter-spacing: normal; /* Reset letter-spacing */
+        }
+        .metric-value-container { /* New container for value and unit */
+          display: flex;
+          justify-content: center;
+          align-items: baseline; /* Aligns value and unit nicely */
+        }
+        .metric-value { /* Just the number */
+          font-size: 1.6em; /* Increased size */
+          font-weight: bold;
+          color: var(--primary-text-color); /* Changed from primary-color */
+          /* margin-bottom: 4px; */ /* Removed, handled by flex container */
         }
         .metric-unit {
-          font-size: 0.8em;
+          font-size: 1em; /* Adjusted to be similar to Mui's secondary span */
           color: var(--secondary-text-color);
+          margin-left: 4px; /* Space between value and unit */
         }
-        .throw-info {
+        .throw-info { /* This class is no longer used, but kept for reference if needed elsewhere */
           margin-top: 16px;
           padding: 12px;
           background: var(--secondary-background-color);
@@ -112,47 +162,35 @@ class TechDiscCard extends HTMLElement {
     
     // Get all TechDisc sensors
     const speedEntity = this._hass.states['sensor.techdisc_speed'];
-    const distanceEntity = this._hass.states['sensor.techdisc_distance'];
+    // const distanceEntity = this._hass.states['sensor.techdisc_distance']; // Not used in the new layout
     const hyzerEntity = this._hass.states['sensor.techdisc_hyzer_angle'];
     const noseEntity = this._hass.states['sensor.techdisc_nose_angle'];
     const rotationEntity = this._hass.states['sensor.techdisc_spin'];
     const launchAngleEntity = this._hass.states['sensor.techdisc_launch_angle'];
     const wobbleEntity = this._hass.states['sensor.techdisc_wobble'];
     const throwTypeEntity = this._hass.states['sensor.techdisc_throw_type'];
+    const distanceEntity = this._hass.states['sensor.techdisc_distance']; // Added back for left column
+    // const lastThrowTimeEntity = this._hass.states['sensor.techdisc_last_throw_time']; // No longer needed
+    // const bearingEntity = this._hass.states['sensor.techdisc_bearing']; // No longer needed
 
-    if (!speedEntity || speedEntity.state === 'unavailable') {
+
+    if (!speedEntity || speedEntity.state === 'unavailable' ||
+        !throwTypeEntity || throwTypeEntity.state === 'unavailable' ||
+        !distanceEntity || distanceEntity.state === 'unavailable') {
       content.innerHTML = '<div class="unavailable">No throw data available</div>';
       return;
     }
 
-    const metrics = [
+    const metricsTopRow = [
       {
         value: speedEntity.state,
         unit: 'mph',
         label: 'Speed'
       },
       {
-        value: distanceEntity?.state || 'N/A',
-        unit: 'ft',
-        label: 'Distance'
-      },
-      {
-        value: hyzerEntity?.state || 'N/A',
-        unit: '°',
-        label: 'Hyzer Angle'
-      },
-      {
-        value: noseEntity?.state || 'N/A',
-        unit: '°',
-        label: 'Nose Angle'
-      },
-      {
-        value: launchAngleEntity?.state || 'N/A',
-        unit: '°',
-        label: 'Launch Angle'
-      },
-      {
-        value: rotationEntity?.state || 'N/A',
+        value: rotationEntity?.state !== 'unavailable' && rotationEntity?.state !== 'unknown' && rotationEntity?.state !== null
+               ? Math.round(parseFloat(rotationEntity.state))
+               : 'N/A',
         unit: 'rpm',
         label: 'Spin'
       },
@@ -163,33 +201,90 @@ class TechDiscCard extends HTMLElement {
       }
     ];
 
-    const metricsHtml = metrics.map(metric => `
+    const metricsBottomRow = [
+      {
+        value: hyzerEntity?.state || 'N/A',
+        unit: '°',
+        label: 'Hyzer'
+      },
+      {
+        value: noseEntity?.state || 'N/A',
+        unit: '°',
+        label: 'Nose'
+      },
+      {
+        value: launchAngleEntity?.state || 'N/A',
+        unit: '°',
+        label: 'Launch'
+      }
+    ];
+
+    const metricsTopRowHtml = metricsTopRow.map(metric => `
       <div class="metric">
-        <div class="metric-value">
-          ${metric.value}
+        <div class="metric-label">${metric.label}</div>
+        <div class="metric-value-container">
+          <span class="metric-value">${metric.value}</span>
           <span class="metric-unit">${metric.unit}</span>
         </div>
-        <div class="metric-label">${metric.label}</div>
       </div>
     `).join('');
 
-    const throwInfo = throwTypeEntity ? `
-      <div class="throw-info">
-        <div class="throw-type">${throwTypeEntity.state}</div>
-        <div class="throw-details">
-          ${throwTypeEntity.attributes.handedness ? `<div>Hand: ${throwTypeEntity.attributes.handedness}</div>` : ''}
-          ${throwTypeEntity.attributes.temperature ? `<div>Temp: ${Math.round(throwTypeEntity.attributes.temperature)}°C</div>` : ''}
-          ${throwTypeEntity.attributes.bearing ? `<div>Bearing: ${Math.round(throwTypeEntity.attributes.bearing)}°</div>` : ''}
-          ${throwTypeEntity.attributes.uphill_angle ? `<div>Uphill: ${Math.round(throwTypeEntity.attributes.uphill_angle)}°</div>` : ''}
+    const metricsBottomRowHtml = metricsBottomRow.map(metric => `
+      <div class="metric">
+        <div class="metric-label">${metric.label}</div>
+        <div class="metric-value-container">
+          <span class="metric-value">${metric.value}</span>
+          <span class="metric-unit">${metric.unit}</span>
         </div>
       </div>
-    ` : '';
+    `).join('');
+
+    // Get throw_time and bearing from attributes of throwTypeEntity
+    let formattedThrowTime = 'N/A';
+    const throwTimeSeconds = throwTypeEntity.attributes?.throw_time;
+
+    if (throwTimeSeconds !== undefined && throwTimeSeconds !== null) {
+        try {
+            // throw_time is in seconds, Date constructor expects milliseconds
+            const date = new Date(throwTimeSeconds * 1000);
+            formattedThrowTime = date.toLocaleString(undefined, {
+                weekday: 'long', hour: 'numeric', minute: 'numeric'
+            });
+        } catch (e) {
+            // _LOGGER.error("Error formatting throw time:", e); // _LOGGER is not defined here
+            console.error("Error formatting throw time:", e);
+            formattedThrowTime = 'Error'; // Or some other indicator
+        }
+    }
+
+    const bearingAttribute = throwTypeEntity.attributes?.bearing;
+    const bearingValue = bearingAttribute !== undefined && bearingAttribute !== null ? `${Math.round(parseFloat(bearingAttribute))}°` : null;
+
+    let bearingHtml = '';
+    if (bearingValue) {
+      bearingHtml = `<span class="throw-detail-item">Bearing: ${bearingValue}</span>`;
+    }
+
+    const distanceValue = distanceEntity && distanceEntity.state !== 'unavailable' && distanceEntity.state !== 'unknown'
+      ? `${Math.round(parseFloat(distanceEntity.state))} ft`
+      : 'N/A';
 
     content.innerHTML = `
-      <div class="metrics-grid">
-        ${metricsHtml}
+      <div class="content-wrapper">
+        <div class="left-column-paper">
+          <p class="latest-throw-title MuiTypography-root MuiTypography-body1 MuiTypography-gutterBottom css-ftrrzr">Latest Throw</p>
+          <div class="throw-details-group">
+            <span class="throw-detail-type">${throwTypeEntity.state || 'N/A'}</span>
+            ${bearingHtml}
+            <span class="throw-detail-item">Time: ${formattedThrowTime}</span>
+            <span class="throw-detail-item">Distance: ${distanceValue}</span>
+          </div>
+        </div>
+        <div class="right-grid">
+          ${metricsTopRowHtml}
+          ${metricsBottomRowHtml}
+        </div>
       </div>
-      ${throwInfo}
     `;
   }
 
