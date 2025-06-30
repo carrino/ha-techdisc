@@ -59,7 +59,7 @@ class TechDiscCard extends HTMLElement {
           display: flex;
           flex-direction: column;
           gap: 8px;
-          flex-basis: 200px; /* Give left column a basis, adjust as needed */
+          flex-basis: 170px; /* Reduced from 200px */
           flex-shrink: 0; /* Prevent shrinking */
         }
         .left-column-paper p.latest-throw-title {
@@ -188,7 +188,9 @@ class TechDiscCard extends HTMLElement {
         label: 'Speed'
       },
       {
-        value: rotationEntity?.state || 'N/A',
+        value: rotationEntity?.state !== 'unavailable' && rotationEntity?.state !== 'unknown' && rotationEntity?.state !== null
+               ? Math.round(parseFloat(rotationEntity.state))
+               : 'N/A',
         unit: 'rpm',
         label: 'Spin'
       },
