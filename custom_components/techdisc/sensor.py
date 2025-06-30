@@ -112,7 +112,7 @@ class TechDiscDataUpdateCoordinator(DataUpdateCoordinator):
                                 # No existing data and no new valid throw.
                                 # Raise UpdateFailed to prevent processing of minimal payload
                                 # and to ensure coordinator handles it as a failed attempt to get *new* data.
-                                _LOGGER.debug("No existing data and no new valid throw. Returning None.")
+                                _LOGGER.warning("Failed to fetch new throw data and no existing data available. Returning None.") # Changed to warning
                                 return None  # No new data, and no old data to fallback to.
                         
         except asyncio.TimeoutError as exception:
@@ -124,16 +124,16 @@ class TechDiscDataUpdateCoordinator(DataUpdateCoordinator):
                 _LOGGER.debug("Timeout, but returning existing data.")
                 return self.data
             else:
-                _LOGGER.debug("Timeout and no existing data. Returning None.")
+                _LOGGER.warning("Timeout fetching data and no existing data to fallback to. Returning None.") # Changed to warning
                 return None
         except aiohttp.ClientError as exception:
             # Similar to TimeoutError, attempt to return existing data if a client error occurs.
-            _LOGGER.warning(f"ClientError communicating with API: {exception}")
+            _LOGGER.info(f"ClientError communicating with API: {exception}") # Changed to info
             if hasattr(self, 'data') and self.data:
                 _LOGGER.debug("ClientError, but returning existing data.")
                 return self.data
             else:
-                _LOGGER.debug("ClientError and no existing data. Returning None.")
+                _LOGGER.warning("ClientError fetching data and no existing data to fallback to. Returning None.") # Changed to warning
                 return None
 
 
