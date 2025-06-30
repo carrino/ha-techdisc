@@ -46,18 +46,32 @@ class TechDiscCard extends HTMLElement {
           display: flex;
           gap: 16px;
         }
-        .left-column {
+        .left-column-paper { /* New wrapper for paper styling */
+          background: var(--ha-card-background, var(--card-background-color, white));
+          border-radius: var(--ha-card-border-radius, 12px);
+          box-shadow: var(--ha-card-box-shadow, var(--shadow-elevation-2dp_-_box-shadow));
+          padding: 16px;
           display: flex;
           flex-direction: column;
-          gap: 8px;
-          min-width: 180px; /* Adjusted min-width */
+          gap: 8px; /* Gap between title and details group */
+          min-width: 180px; /* Or adjust as needed, could be flex-basis */
         }
-        .left-column p { /* Style for "Latest Throw" */
-          margin: 0;
-          font-weight: 500; /* Similar to header h2 */
+        .left-column-paper p.latest-throw-title { /* Style for "Latest Throw" */
+          margin: 0 0 8px 0;
+          font-weight: 500;
           color: var(--primary-text-color);
         }
-        .left-column span { /* Style for throw type, bearing, time */
+        .throw-details-group { /* New group for throw details */
+          display: flex;
+          flex-direction: column;
+          gap: 4px; /* Small gap between detail lines */
+        }
+        /* Styles for spans within throw-details-group, mimicking Mui classes */
+        .throw-details-group .css-1ptfqyl { /* For throw type */
+          font-weight: 500; /* Example, adjust as needed */
+          color: var(--primary-text-color);
+        }
+        .throw-details-group .css-14qay1w { /* For other details like time, bearing, distance */
           font-size: 0.9em;
           color: var(--secondary-text-color);
         }
@@ -248,12 +262,14 @@ class TechDiscCard extends HTMLElement {
 
     content.innerHTML = `
       <div class="content-wrapper">
-        <div class="left-column">
-          <p class="MuiTypography-root MuiTypography-body1 MuiTypography-gutterBottom css-ftrrzr">Latest Throw</p>
-          <span class="MuiStack-root css-1ptfqyl">${throwTypeEntity.state || 'N/A'}</span>
-          ${bearingHtml}
-          <span class="MuiStack-root css-14qay1w">Time: ${formattedThrowTime}</span>
-          <span class="MuiStack-root css-14qay1w">Distance: ${distanceValue}</span>
+        <div class="left-column-paper">
+          <p class="latest-throw-title MuiTypography-root MuiTypography-body1 MuiTypography-gutterBottom css-ftrrzr">Latest Throw</p>
+          <div class="throw-details-group">
+            <span class="MuiStack-root css-1ptfqyl">${throwTypeEntity.state || 'N/A'}</span>
+            ${bearingHtml} {/* This already generates a span with the correct classes if bearingValue exists */}
+            <span class="MuiStack-root css-14qay1w">Time: ${formattedThrowTime}</span>
+            <span class="MuiStack-root css-14qay1w">Distance: ${distanceValue}</span>
+          </div>
         </div>
         <div class="right-grid">
           ${metricsTopRowHtml}
