@@ -20,13 +20,6 @@ class TechDiscCard extends HTMLElement {
   render() {
     this.shadowRoot.innerHTML = `
       <style>
-        /* Add styles for the logo */
-        .header img.logo {
-          height: 24px; /* Adjust size as needed */
-          width: auto;
-          margin-right: 8px;
-          vertical-align: middle; /* Align with title text */
-        }
         .card {
           background: var(--ha-card-background, var(--card-background-color, white));
           border-radius: var(--ha-card-border-radius, 12px);
@@ -124,7 +117,6 @@ class TechDiscCard extends HTMLElement {
       </style>
       <div class="card">
         <div class="header">
-           <img src="../logo.png" class="logo" alt="TechDisc Logo">
           <ha-icon icon="mdi:disc"></ha-icon>
           <h2>${this.config.title || 'TechDisc Metrics'}</h2>
         </div>
@@ -147,11 +139,11 @@ class TechDiscCard extends HTMLElement {
     const launchAngleEntity = this._hass.states['sensor.techdisc_launch_angle'];
     const wobbleEntity = this._hass.states['sensor.techdisc_wobble'];
     const throwTypeEntity = this._hass.states['sensor.techdisc_throw_type'];
-    const lastThrowTimeEntity = this._hass.states['sensor.techdisc_last_throw_time']; // Assuming this entity exists
-    const bearingEntity = this._hass.states['sensor.techdisc_bearing']; // Assuming this entity exists
+    // const lastThrowTimeEntity = this._hass.states['sensor.techdisc_last_throw_time']; // No longer needed
+    // const bearingEntity = this._hass.states['sensor.techdisc_bearing']; // No longer needed
 
 
-    if (!speedEntity || speedEntity.state === 'unavailable') {
+    if (!speedEntity || speedEntity.state === 'unavailable' || !throwTypeEntity || throwTypeEntity.state === 'unavailable') {
       content.innerHTML = '<div class="unavailable">No throw data available</div>';
       return;
     }
@@ -212,27 +204,37 @@ class TechDiscCard extends HTMLElement {
       </div>
     `).join('');
 
-    // Attempt to format the date/time nicely
+    // Get throw_time and bearing from attributes of throwTypeEntity
     let formattedThrowTime = 'N/A';
-    if (lastThrowTimeEntity && lastThrowTimeEntity.state !== 'unavailable') {
+    const throwTimeSeconds = throwTypeEntity.attributes?.throw_time;
+
+    if (throwTimeSeconds !== undefined && throwTimeSeconds !== null) {
         try {
-            const date = new Date(lastThrowTimeEntity.state);
+            // throw_time is in seconds, Date constructor expects milliseconds
+            const date = new Date(throwTimeSeconds * 1000);
             formattedThrowTime = date.toLocaleString(undefined, {
                 weekday: 'long', hour: 'numeric', minute: 'numeric'
             });
         } catch (e) {
-            formattedThrowTime = lastThrowTimeEntity.state; // fallback to raw state
+            _LOGGER.error("Error formatting throw time:", e);
+            formattedThrowTime = 'Error'; // Or some other indicator
         }
     }
 
-    const bearingValue = bearingEntity && bearingEntity.state !== 'unavailable' ? `${Math.round(bearingEntity.state)}°` : 'N/A';
+    const bearingAttribute = throwTypeEntity.attributes?.bearing;
+    const bearingValue = bearingAttribute !== undefined && bearingAttribute !== null ? `${Math.round(parseFloat(bearingAttribute))}°` : null;
+
+    let bearingHtml = '';
+    if (bearingValue) {
+      bearingHtml = `<span class="MuiStack-root css-14qay1w">Bearing: ${bearingValue}</span>`;
+    }
 
     content.innerHTML = `
       <div class="content-wrapper">
         <div class="left-column">
           <p class="MuiTypography-root MuiTypography-body1 MuiTypography-gutterBottom css-ftrrzr">Latest Throw</p>
-          <span class="MuiStack-root css-1ptfqyl">${throwTypeEntity?.state || 'N/A'}</span>
-          <span class="MuiStack-root css-14qay1w">Bearing: ${bearingValue}</span>
+          <span class="MuiStack-root css-1ptfqyl">${throwTypeEntity.state || 'N/A'}</span>
+          ${bearingHtml}
           <span class="MuiStack-root css-14qay1w">Time: ${formattedThrowTime}</span>
         </div>
         <div class="right-grid">
