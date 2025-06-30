@@ -68,28 +68,38 @@ class TechDiscCard extends HTMLElement {
           flex-grow: 1;
         }
         .metric {
-          background: var(--secondary-background-color);
-          border-radius: 8px;
+          /* background: var(--secondary-background-color); */ /* Removed */
+          border-radius: var(--ha-card-border-radius, 12px); /* Use HA card radius */
           padding: 12px;
           text-align: center;
+          background: var(--ha-card-background, var(--card-background-color, white)); /* Use HA card background */
+          box-shadow: var(--ha-card-box-shadow, var(--shadow-elevation-2dp_-_box-shadow)); /* Use HA card shadow */
         }
-        .metric-value {
-          font-size: 1.4em;
+        .metric-label { /* This is the title like "Speed" */
+          font-size: 1em; /* Adjusted - similar to MuiTypography-body1 */
+          font-weight: 500; /* Adjusted */
+          color: var(--primary-text-color); /* Adjusted */
+          margin-bottom: 8px; /* Adjusted - similar to MuiTypography-gutterBottom */
+          text-transform: none; /* Removed uppercase */
+          letter-spacing: normal; /* Reset letter-spacing */
+        }
+        .metric-value-container { /* New container for value and unit */
+          display: flex;
+          justify-content: center;
+          align-items: baseline; /* Aligns value and unit nicely */
+        }
+        .metric-value { /* Just the number */
+          font-size: 1.6em; /* Increased size */
           font-weight: bold;
-          color: var(--primary-color);
-          margin-bottom: 4px;
-        }
-        .metric-label {
-          font-size: 0.9em;
-          color: var(--secondary-text-color);
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
+          color: var(--primary-text-color); /* Changed from primary-color */
+          /* margin-bottom: 4px; */ /* Removed, handled by flex container */
         }
         .metric-unit {
-          font-size: 0.8em;
+          font-size: 1em; /* Adjusted to be similar to Mui's secondary span */
           color: var(--secondary-text-color);
+          margin-left: 4px; /* Space between value and unit */
         }
-        .throw-info {
+        .throw-info { /* This class is no longer used, but kept for reference if needed elsewhere */
           margin-top: 16px;
           padding: 12px;
           background: var(--secondary-background-color);
@@ -186,21 +196,21 @@ class TechDiscCard extends HTMLElement {
 
     const metricsTopRowHtml = metricsTopRow.map(metric => `
       <div class="metric">
-        <div class="metric-value">
-          ${metric.value}
+        <div class="metric-label">${metric.label}</div>
+        <div class="metric-value-container">
+          <span class="metric-value">${metric.value}</span>
           <span class="metric-unit">${metric.unit}</span>
         </div>
-        <div class="metric-label">${metric.label}</div>
       </div>
     `).join('');
 
     const metricsBottomRowHtml = metricsBottomRow.map(metric => `
       <div class="metric">
-        <div class="metric-value">
-          ${metric.value}
+        <div class="metric-label">${metric.label}</div>
+        <div class="metric-value-container">
+          <span class="metric-value">${metric.value}</span>
           <span class="metric-unit">${metric.unit}</span>
         </div>
-        <div class="metric-label">${metric.label}</div>
       </div>
     `).join('');
 
