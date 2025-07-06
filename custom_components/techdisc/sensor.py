@@ -288,18 +288,26 @@ class TechDiscThrowTypeSensor(TechDiscSensorBase):
             return primary
         return None
 
+from homeassistant.util import dt as dt_util # Import datetime utility
+
     @property
     def extra_state_attributes(self) -> dict[str, any] | None:
         """Return additional state attributes."""
         if self.coordinator.data:
-            return {
-                "throw_time": self.coordinator.data.get("throwTime", {}).get("_seconds"),
+            attrs = {
+                "throw_time_seconds": self.coordinator.data.get("throwTime", {}).get("_seconds"), # Keep original for reference
                 "temperature": self.coordinator.data.get("temp"),
                 "bearing": self.coordinator.data.get("bearing"),
                 "uphill_angle": self.coordinator.data.get("uphillAngle"),
                 "off_axis_degrees": self.coordinator.data.get("offAxisDegrees"),
                 "estimated_flight_numbers": self.coordinator.data.get("estimatedFlightNumbers"),
                 "handedness": self.coordinator.data.get("handedness"),
-                "device_id": self.coordinator.data.get("deviceId"),
+                "device_id": self.coordinator.data.get("deviceId"), # This is deviceUid
             }
+            if hasattr(self.coordinator, 'last_throw_time_millis') and self.coordinator.last_throw_time_millis is not None:
+                last_throw_datetime = dt_util.utc_from_timestamp(self.coordinator.last_throw_time_millis / 1000)
+                attrs["last_throw_time"] = last_throw_datetime.isoformat()
+            else:
+                attrs["last_throw_time"] = None
+            return attrs
         return None
