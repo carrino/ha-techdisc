@@ -2,11 +2,11 @@
 from __future__ import annotations
 
 import logging
-import os
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.components.http.view import StaticPathConfig
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -19,11 +19,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = entry.data
 
     # Serve /techdisc-card/... from ./www/
-    www_path = os.path.join(os.path.dirname(__file__), "www")
-    hass.http.register_static_path(
-        "/techdisc-card",
-        www_path,
-        cache_headers=True
+    await hass.http.async_register_static_paths(
+        [StaticPathConfig("/techdisc-card", "/config/custom_components/techdisc/www", True)]
     )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
