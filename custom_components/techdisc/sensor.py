@@ -288,10 +288,11 @@ class TechDiscThrowTypeSensor(TechDiscSensorBase):
             return primary
         return None
 
-from homeassistant.util import dt as dt_util # Import datetime utility
-
     @property
     def extra_state_attributes(self) -> dict[str, any] | None:
+        """Return additional state attributes."""
+        # Import moved here to be within the class method's scope or class level if used by multiple methods
+        from homeassistant.util import dt as dt_util # Import datetime utility
         """Return additional state attributes."""
         if self.coordinator.data:
             attrs = {
