@@ -18,6 +18,7 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     UpdateFailed,
 )
+from homeassistant.util import dt as dt_util # Import datetime utility
 
 DOMAIN = "techdisc"
 
@@ -288,7 +289,6 @@ class TechDiscThrowTypeSensor(TechDiscSensorBase):
             return primary
         return None
 
-from homeassistant.util import dt as dt_util # Import datetime utility
 
     @property
     def extra_state_attributes(self) -> dict[str, any] | None:
