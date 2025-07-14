@@ -7,7 +7,8 @@ import os
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.components.http.view import StaticPathConfig
+from homeassistant.components.http import StaticPathConfig
+
 
 _LOGGER = logging.getLogger(__name__)
 
